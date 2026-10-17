@@ -1061,8 +1061,10 @@ draw();
 const extraCss = `
 .iso-stage{position:relative;outline-offset:4px}
 .xb-btns{position:absolute;top:10px;right:10px;z-index:2;display:flex;flex-wrap:wrap;justify-content:flex-end;gap:6px;max-width:min(92vw,540px)}
-.xb-btn{font:11px/1 ui-monospace,Menlo,monospace;letter-spacing:.08em;color:var(--anatomy-muted);background:var(--anatomy-card);border:1px solid var(--anatomy-faint);border-radius:4px;padding:5px 10px;cursor:pointer}
+.xb-btn{font:11px/1 ui-monospace,Menlo,monospace;letter-spacing:.08em;color:var(--anatomy-muted);background:var(--anatomy-card);border:1px solid var(--anatomy-faint);border-radius:4px;padding:8px 12px;cursor:pointer}
 .xb-btn:hover{color:var(--anatomy-strong);border-color:var(--anatomy-mid)}
+.xb-btn:active{transform:translateY(1px)}
+.xb-btn:focus-visible{outline:2px solid var(--anatomy-blue);outline-offset:1px}
 .xb-btn.on{color:var(--anatomy-strong);border-color:var(--anatomy-lit)}
 .xb-water{position:absolute;top:46px;right:10px;z-index:2;width:172px;accent-color:var(--anatomy-lit);display:none}
 .xb-lab{font:10.5px/1.4 ui-monospace,Menlo,monospace;fill:var(--anatomy-strong);paint-order:stroke;stroke:var(--anatomy-card);stroke-width:3px;letter-spacing:.04em}
@@ -1093,7 +1095,7 @@ svg.focusing [data-info]:not(.foc){opacity:.55}
 const body = k.plateHtml({
   fig: "Fig 1",
   title: "赵州桥 · 结构剖析",
-  hint: "拖拽旋转 · 滚轮缩放 · 点击部位聚焦 · 悬停注解 · 点券抽出\nT 导览 · X 分解 · F 受力 · W 泄洪 · M 测量 · C 对比 · B 建造 · R 旋转",
+  hint: "拖拽旋转 · 滚轮缩放 · 双指缩放 · 点击部位聚焦 · 悬停注解 · 点券抽出\nT 导览 · X 分解 · F 受力 · W 泄洪 · M 测量 · C 对比 · B 建造 · R 旋转",
   readout: "28 道拱券纵向并列 · 净跨 37.02 m · 矢高 7.23 m",
   keys: [
     { mark: "lit", label: "第 28 道拱券：9.0 m 桥面宽分作 28 道（每道约 0.32 m），券石间腰铁栓蹙" },
