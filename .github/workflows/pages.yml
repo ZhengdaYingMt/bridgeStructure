@@ -9,6 +9,9 @@ on:
 permissions:
   pages: write
   id-token: write
+  # configure-pages 的 enablement 调「Create a Pages site」API，
+  # fine-grained token 需要 Administration 写权限，缺了就是 403
+  administration: write
 
 # 同一时间只跑一个部署，排队而不是并行覆盖
 concurrency:
