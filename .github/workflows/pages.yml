@@ -1,0 +1,37 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Pages 部署的标准权限组合：pages 写入 + OIDC 令牌
+permissions:
+  pages: write
+  id-token: write
+
+# 同一时间只跑一个部署，排队而不是并行覆盖
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      # enablement: true —— 首次运行自动在仓库里开启 Pages，
+      # 不用再到 Settings -> Pages 手动点一次
+      - uses: actions/configure-pages@v5
+        with:
+          enablement: true
+      # 页面是构建好的独立 HTML，仓库即站点，整目录发布
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+      - id: deployment
+        uses: actions/deploy-pages@v4
+
