@@ -5,6 +5,7 @@ import * as k from "./iso-kit.mjs";
 import { kitScript } from "./inline-kit.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
+const SRC_DATA = JSON.parse(readFileSync(join(HERE, "sources.json"), "utf8"));
 const theme = process.argv.includes("--light") ? "light" : "dark";
 
 // SCENE-BEGIN —— 场景模块：构建期与页面运行时共用（页面经 SCENE_SRC 注入）
@@ -1037,6 +1038,8 @@ stage.addEventListener("keydown", (event) => {
   if (event.key === "b") { event.preventDefault(); endTour(true); startBuild(); return; }
   if (event.key === "t") { event.preventDefault(); if (guided) guidedStep(); else { guidedAuto = false; guidedStep(); } return; }
   if (event.key === "r" || event.key === "R") { event.preventDefault(); toggleTurn(); return; }
+  if (event.key === "s") { event.preventDefault(); toggleSrc(); return; }
+  if (event.key === "Escape" && srcPanel.classList.contains("on")) { event.preventDefault(); closeSrc(); return; }
   if (event.key === "Escape") {
     event.preventDefault(); endTour(); cancelBuild();
     locked = false; touring = false; target = 0; if (exTarget) toggleExplode(); setModes({});
@@ -1053,6 +1056,45 @@ stage.addEventListener("keydown", (event) => {
   if (next === null) return;
   event.preventDefault(); steer(next);
 });
+
+/* ---- 出处面板 ---- */
+const srcPanel = stage.querySelector('.xb-src');
+const srcTabsEl = srcPanel.querySelector('.xb-src-tabs');
+const srcBodyEl = srcPanel.querySelector('.xb-src-body');
+const SRC = {"TABS":["主体","敞肩","石作","沿革","年表"],"GROUPS":[{"tab":"主体","g":"主拱","from":"净跨 37.02 m 由 1955 年修缮时测定，《辞海》沿用，为通行值；拱矢 7.23 m 见罗英《中国石桥》（人民交通出版社 1959）、钱令希《赵州桥的承载能力分析》。另有林树涵《赵州桥净跨径考析》（《自然科学史研究》2001 年第 20 卷第 2 期）据梁思成 1934 年实测图反推，主张净跨应为 39±1 m——单家新说，未成主流。须留意：常被当成\"第二说\"引用的 37.47 m 并不是主拱净跨，那是南北两小券墩壁之间的距离；梁思成原文已注明大券净跨在此数之上。","rows":[{"n":"净跨","v":"37.02 m　1955 年测定，《辞海》沿用"},{"n":"拱矢","v":"7.23 m　起拱线量至拱顶内弧"},{"n":"矢跨比","v":"约 1 : 5.12　按 37.02 / 7.23 反算；文献通作「约 1:5」"},{"n":"拱圈厚","v":"1.03 m　钱令希《赵州桥的承载能力分析》"},{"n":"圆心角","v":"85.34°　由净跨、矢高反算；另有按拱轴半径作 83°24′ 者"},{"n":"拱顶宽","v":"9.0 m"},{"n":"拱脚宽","v":"9.6 m　自拱脚向拱顶收分"}]},{"tab":"主体","g":"桥身","from":"全长 64.4 m、28 道并列券为通行数据（赵县政府网、中国桥文化等）。券指的是沿桥宽并排的一道道石拱，各道独立砌筑，并不是一整片石头雕出来的。常被引作「42 块栏板和望柱」的说法，是把栏板与望柱合成了一项：1954 年 10 月 11 日北京文物整理委员会《栏板数量及尺寸单》所记，是每侧栏板 21 块、望柱 22 根。","rows":[{"n":"全长","v":"64.4 m　含两端引桥"},{"n":"并列拱券","v":"28 道　各宽约 0.32 m"},{"n":"收分","v":"两端全宽约 9.6 m，中部栏板间净宽约 9.0 m　罗英《中国桥梁史料》、唐寰澄"},{"n":"栏板望柱","v":"每侧栏板 21 块、望柱 22 根；全桥 42 块栏板 + 44 根望柱"}]},{"tab":"敞肩","g":"四个小拱","from":"净跨 3.81 m（靠桥台的外侧）与 2.85 m（靠拱顶的内侧）为通行数据，主流资料一致。因这四个洞，赵州桥是世界上现存最早的敞肩拱桥。拱矢与内外侧的对应关系由本模型按拱背可用净高定出：拱背越高，能开的洞越大，所以靠桥台的那孔比靠拱顶的那孔大。","rows":[{"n":"数量","v":"主拱两端各 2 个，共 4 个"},{"n":"外侧净跨","v":"3.81 m　靠桥台，拱背净高大，矢高 1.83 m"},{"n":"内侧净跨","v":"2.85 m　靠拱顶，拱背净高小，矢高 1.37 m"},{"n":"凿去石方","v":"31.29 m²（全孔断面）· 298.1 m³（沿桥宽积分）· 约 780 吨　【本模型】"},{"n":"占拱肩","v":"17.0%　主拱拱肩断面被凿掉的比例，静态的账，不随水量变　【本模型】"}]},{"tab":"敞肩","g":"过水断面的增益","from":"这一组全是本模型算出来的，不是史料。文献中另有茅以升述及的「敞肩拱使过水流量增加 16.5%、减轻自重 15.3%、安全系数增 11.4%」，那是拿桥孔本身的过水断面作分母；本模型的分母是整条河的过水断面（河宽一百余米），桥孔只占其中一段，所以算出来的增益小得多。两个口径不可直接相比，这里如实列出，不作修饰。","rows":[{"n":"口径","v":"Q = 1280 m³/s（四孔全开）· 孔口出流 Q = C·A·√(2gH)，C 取 0.42　【本模型】"},{"n":"水位","v":"敞肩 6.80 m　/　实肩 8.78 m　起拱线以上"},{"n":"小拱券脚","v":"外侧 3.91 m　/　内侧 6.05 m　各自落在主拱拱背上　【本模型】"},{"n":"过水面积","v":"敞肩 246.4 m²　/　实肩 220.0 m²，多 26.4 m²"},{"n":"冲击力","v":"敞肩 3.5 MN　/　实肩 4.3 MN，降 18.6%"},{"n":"壅水","v":"敞肩 1.07 m　/　实肩 1.42 m"}]},{"tab":"沿革","g":"桥台与基础","from":"1954 年在桥西北侧开挖实测：拱脚下五层石料共厚 1.549 m，第五层之下即砂土，无木料、无桩基。梁思成 1934 年记为五层共高 1.58 m，赵县博物馆记 1.57 m。1983 年《中国古桥技术史》编委组织钻探，得桥台长 5.8 m、宽 9.6 m、埋深 2.0—2.5 m。","rows":[{"n":"桥台厚","v":"1.549 m　拱脚下五层条石共厚"},{"n":"拱脚下","v":"5 层平铺条石，灰缝极薄、无裂缝，每层略有出台"},{"n":"桥台长","v":"本模型取 5.0 m（通行概略值「约 5 m」），1983 年钻探作 5.8 m"},{"n":"基础","v":"宽 9.6—10 m，长约 5.5 m，埋深 2—2.5 m"},{"n":"持力层","v":"粗砂层，无桩基。直接砌在砂上，千余年沉降极微"},{"n":"本模型读法","v":"1.549 m 即那五层的总厚，压在桥台底下：台底 -1.60 m、基底 -3.15 m，与「埋深 2—2.5 m」相合"}]},{"tab":"石作","g":"石作与加固","from":"梁思成把赵州桥的加固归纳为五种：护拱、勾石、铁梁、腰铁、收分。其中「蜂腰」与「收分」说的本是同一件事——拱券自拱脚向拱顶逐层收窄，各道券因此彼此挤紧——常见资料把它们并列成两种做法，是重了。腰铁与铁梁也常被混为一谈，其实一短一长，作用不同，见下。梁思成对勾石、铁条这两种铁活给的是「功效极有限」，真正管用的是收分。拆解视图里这几样铁件一律放大画：真尺寸在这个比例下不到一像素，图里只表位置。","rows":[{"n":"护拱石","v":"主拱背上平铺的一层，把 28 道券连成整体，四个小拱的券脚就落在它上面"},{"n":"勾石","v":"每侧 6 块、全桥 12 块，设在护拱石两侧；外端刻成曲尺形、向下伸约 5 cm，钩住最外一道券。梁思成记作「小券券脚处特别伸出的石条」。长 1.2 m（《中国古桥技术史》）或 1.8 m（唐寰澄）"},{"n":"铁梁","v":"即铁拉杆。横贯 28 道券的拱背，全桥 9 根：大券 5 根、四个小拱各 1 根，两端露出券石面做成圆帽，唐《赵州石桥铭》「九津九星」当即指这 9 个铁帽。长度无权威数值，本模型只画位置与端帽"},{"n":"腰铁","v":"银锭形的双燕尾小铁件，嵌在相邻拱石的缝口里把两块石头锁住，券面上嵌两排；28 道券之间在券石顶面也嵌。不是横贯全桥的长铁件——那是铁梁"},{"n":"收分","v":"即蜂腰。拱券自两端向中部逐层收窄，越往拱顶挤得越紧。拱石侧面另凿有细密斜纹，加大摩擦，各券才不易错动"},{"n":"现存栏板","v":"桥上栏板望柱系 1958 年前后按隋式复制补配；隋代原件散藏中国国家博物馆（「安济桥石栏板」，1953 年赵县出土）与赵县文保单位"}]},{"tab":"沿革","g":"年代与身分","from":"最早的文献记载见唐·张嘉贞《石桥铭序》（收《全唐文》卷 299），首句即「赵郡洨河石桥，隋匠李春之迹也」。建造年代「595—605 年」是常见表述之一，另有「开皇年间」「大业年间（605—618）」诸说，学界未定于一。","rows":[{"n":"建造","v":"隋 · 595—605 年，匠人李春　一说开皇年间，一作大业年间"},{"n":"最早记载","v":"唐 · 张嘉贞《石桥铭序》：「赵郡洨河石桥，隋匠李春之迹也」"},{"n":"文物身分","v":"1961 年国务院公布为第一批全国重点文物保护单位"},{"n":"国际认定","v":"1991 年美国土木工程师学会（ASCE）定为国际土木工程历史古迹，中国唯一"}]}],"ANNALS":[{"y":"隋","t":"595—605 年间，李春建成。敞肩石拱，净跨 37 米余。","s":"建造年代有开皇、大业诸说，学界未定于一"},{"y":"唐","t":"张嘉贞《石桥铭序》：「赵郡洨河石桥，隋匠李春之迹也」——现存最早的文献记载，铭中另有「腰铁栓蹙」语。","s":"《全唐文》卷 299"},{"y":"唐","t":"《赵州石桥铭》：「九津九星横河中」。所谓九星，当即拱背上 9 根铁梁露出券石面的圆帽。","s":"《全唐文》卷 637 题作李翱，另有作李翰者，作者有异说"},{"y":"北宋","t":"约 1056—1063 年间，乡民盗凿桥中铁件，桥遂欹倒。僧怀丙「不役众工，以术正之，使复故」——正史所记的第一次修缮。","s":"《宋史·方技传》"},{"y":"明","t":"1563—1597 年间重修。运炭船家泊舟桥下失火，火延入券缝，腰铁剥落；自嘉靖四十二年动工，至万历二十五年冬竣工。","s":"张居敬《重修大石桥记》"},{"y":"清","t":"续有整修。后来五道券的伏石上也用了腰铁，或即清代所加。","s":"《中国赵州桥志》等"},{"y":"1933","t":"11 月，梁思成、莫宗江考察赵州桥，翌年发表《赵县大石桥即安济桥》，1936 年再赴复勘桥基。中国学者第一次用现代方法测绘此桥。","s":"《中国营造学社汇刊》第五卷第一期"},{"y":"1952—1958","t":"新中国成立后大修：北京文物整理委员会勘察设计、河北省公路局负责桥体加固施工，余鸣谦为技术负责人。1956 年 11 月桥体完工，栏板安装 1958 年 11 月完工。","s":"《河北省赵县安济桥修缮工程（1952—1958）》。栏板竣工时间另有档案梳理作 1957 年 11 月，两说并存"},{"y":"1953—1957","t":"河床发掘 4 次，得大小石块 1400 余块，从中选出栏板 28 块、望柱残件 33 段。因补配石料引出新旧之争，梁思成由此提出「整旧如旧」。","s":"同上"},{"y":"1961","t":"国务院公布为第一批全国重点文物保护单位。","s":"《第一批全国重点文物保护单位名单》"},{"y":"1963 / 1966","t":"1963 年海河特大洪水、1966 年邢台地震，桥体均未受损。","s":"通行说法"},{"y":"1991","t":"美国土木工程师学会（ASCE）将其列为国际土木工程历史古迹，为中国第一处。","s":"ASCE 立牌"}]};
+let srcTab = 0;
+function srcRender() {
+  srcTabsEl.innerHTML = '';
+  SRC.TABS.forEach((t, i) => {
+    const b = document.createElement('button');
+    b.className = 'xb-src-tab' + (i === srcTab ? ' on' : '');
+    b.textContent = t; b.type = 'button';
+    b.addEventListener('click', (ev) => { ev.stopPropagation(); srcTab = i; srcRender(); });
+    srcTabsEl.appendChild(b);
+  });
+  srcBodyEl.innerHTML = '';
+  if (srcTab < 4) {
+    SRC.GROUPS.filter((g) => g.tab === SRC.TABS[srcTab]).forEach((g) => {
+      const div = document.createElement('div'); div.className = 'xb-src-grp';
+      const h = document.createElement('h4'); h.textContent = g.g;
+      const f = document.createElement('p'); f.className = 'from'; f.textContent = g.from;
+      div.append(h, f);
+      const rows = document.createElement('div'); rows.className = 'xb-src-rows';
+      g.rows.forEach((r) => { const n = document.createElement('span'); n.className = 'n'; n.textContent = r.n; const v = document.createElement('span'); v.className = 'v'; v.textContent = r.v; rows.append(n, v); });
+      div.appendChild(rows); srcBodyEl.appendChild(div);
+    });
+  } else {
+    const ul = document.createElement('ul'); ul.className = 'xb-src-annals';
+    SRC.ANNALS.forEach((a) => { const li = document.createElement('li'); const y = document.createElement('span'); y.className = 'y'; y.textContent = a.y; const t = document.createElement('span'); t.className = 't'; t.textContent = a.t; const s = document.createElement('span'); s.className = 's'; s.textContent = a.s; li.append(y, t, s); ul.appendChild(li); });
+    srcBodyEl.appendChild(ul);
+  }
+}
+function openSrc() { srcPanel.classList.add('on'); btns.src.classList.add('on'); srcRender(); }
+function closeSrc() { srcPanel.classList.remove('on'); btns.src.classList.remove('on'); }
+function toggleSrc() { srcPanel.classList.contains('on') ? closeSrc() : openSrc(); }
+btns.src.addEventListener('click', (event) => { event.stopPropagation(); toggleSrc(); });
+srcPanel.querySelector('.xb-src-close').addEventListener('click', (event) => { event.stopPropagation(); closeSrc(); });
+
 setModes({});
 fillWater();
 draw();
@@ -1083,6 +1125,32 @@ svg.touring [data-info]:not(.hl){opacity:.3}
 [data-info]{transition:opacity .3s}
 svg.focusing [data-info]:not(.foc){opacity:.55}
 [data-info].foc .iso-top,[data-info].foc .iso-edge,[data-info].foc .iso-line{stroke:var(--anatomy-lit)}
+
+/* 数据出处面板：底部抽屉，五栏标签切换 */
+.xb-src{position:absolute;z-index:3;bottom:8px;left:8px;right:8px;max-width:min(94vw,680px);margin:0 auto;background:var(--anatomy-card);border:1px solid var(--anatomy-faint);border-radius:6px;font:11px/1.7 ui-monospace,Menlo,monospace;color:var(--anatomy-text);box-shadow:0 4px 18px rgba(0,0,0,.12);display:none;flex-direction:column;max-height:72vh;overflow:hidden}
+.xb-src.on{display:flex}
+.xb-src-head{display:flex;align-items:center;justify-content:space-between;padding:8px 12px 6px;border-bottom:1px solid var(--anatomy-faint);flex-shrink:0}
+.xb-src-head b{color:var(--anatomy-strong);font-weight:600;letter-spacing:.06em}
+.xb-src-close{background:none;border:none;color:var(--anatomy-muted);font-size:16px;cursor:pointer;padding:0 4px;line-height:1}
+.xb-src-close:hover{color:var(--anatomy-strong)}
+.xb-src-tabs{display:flex;flex-wrap:wrap;gap:0;padding:0 8px;border-bottom:1px solid var(--anatomy-faint);flex-shrink:0}
+.xb-src-tab{font:10.5px/1 ui-monospace,Menlo,monospace;letter-spacing:.05em;color:var(--anatomy-muted);background:none;border:none;border-bottom:2px solid transparent;padding:7px 10px 6px;cursor:pointer}
+.xb-src-tab:hover{color:var(--anatomy-strong)}
+.xb-src-tab.on{color:var(--anatomy-strong);border-bottom-color:var(--anatomy-lit)}
+.xb-src-body{overflow-y:auto;padding:8px 12px 10px;flex:1;min-height:0}
+.xb-src-grp{margin-bottom:8px}
+.xb-src-grp:last-child{margin-bottom:0}
+.xb-src-grp h4{margin:0 0 3px;font-size:11px;font-weight:600;color:var(--anatomy-strong);letter-spacing:.04em}
+.xb-src-grp .from{margin:0 0 5px;font-size:10px;line-height:1.65;color:var(--anatomy-muted)}
+.xb-src-rows{display:grid;grid-template-columns:88px 1fr;gap:1px 10px;font-size:10.5px;line-height:1.7}
+.xb-src-rows .n{color:var(--anatomy-muted);text-align:right;white-space:nowrap}
+.xb-src-rows .v{color:var(--anatomy-text)}
+.xb-src-annals{list-style:none;margin:0;padding:0;font-size:10.5px;line-height:1.75}
+.xb-src-annals li{display:flex;gap:10px;padding:3px 0;border-bottom:1px solid var(--anatomy-faint)}
+.xb-src-annals li:last-child{border-bottom:none}
+.xb-src-annals .y{flex-shrink:0;width:76px;text-align:right;color:var(--anatomy-strong);font-weight:600}
+.xb-src-annals .t{flex:1;color:var(--anatomy-text)}
+.xb-src-annals .s{flex-shrink:0;width:170px;color:var(--anatomy-muted);font-size:9.5px;padding-top:2px}
 /* 底部角落分层：快捷键两行在上，动态读数独占底行，避免长文案互压 */
 .iso-plate{padding-bottom:118px}
 .iso-plate-corner[data-corner="hint"]{white-space:pre-line;line-height:1.9;bottom:50px;max-width:100%}
@@ -1095,7 +1163,7 @@ svg.focusing [data-info]:not(.foc){opacity:.55}
 const body = k.plateHtml({
   fig: "Fig 1",
   title: "赵州桥 · 结构剖析",
-  hint: "拖拽旋转 · 滚轮缩放 · 双指缩放 · 点击部位聚焦 · 悬停注解 · 点券抽出\nT 导览 · X 分解 · F 受力 · W 泄洪 · M 测量 · C 对比 · B 建造 · R 旋转",
+  hint: "拖拽旋转 · 滚轮缩放 · 双指缩放 · 点击部位聚焦 · 悬停注解 · 点券抽出\nT 导览 · X 分解 · F 受力 · W 泄洪 · M 测量 · C 对比 · B 建造 · R 旋转 · S 出处",
   readout: "28 道拱券纵向并列 · 净跨 37.02 m · 矢高 7.23 m",
   keys: [
     { mark: "lit", label: "第 28 道拱券：9.0 m 桥面宽分作 28 道（每道约 0.32 m），券石间腰铁栓蹙" },
@@ -1105,7 +1173,7 @@ const body = k.plateHtml({
   ],
   caption:
     "隋开皇至大业年间（公元 595—605 年），匠师李春在洨河上建成安济桥（赵州桥）：单孔坦弧敞肩石拱桥，全长 64.4 m（含桥堍，桥身 50.82 m），净跨 37.02 m，矢高 7.23 m（矢跨比约 1:5，拱圈半径 27.31 m），河心不立桥墩。主拱 28 道拱券纵向并列砌筑，两肩各开两小拱（靠拱脚净跨 3.81 m、靠桥中 2.85 m），洪水时辅助分洪。券石间腰铁栓蹙（唐·张嘉贞《安济桥铭》），券背上施伏石联络各道单券（梁思成《赵县大石桥即安济桥》，1934）。1961 年列入国务院公布的第一批全国重点文物保护单位；1991 年被美国土木工程师学会（ASCE）选定为“国际土木工程历史古迹”（第 12 处）。尺寸据赵县人民政府、石家庄市人民政府、中国数字科技馆公布数据及茅以升《中国石拱桥》；拱圈厚度、小拱矢高、砌缝分块与洪水位为示意。",
-  body: `<div class="iso-stage" tabindex="0" role="slider" aria-label="赵州桥拱券抽出程度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><style>${extraCss}</style><div class="xb-btns"><button class="xb-btn" type="button" data-act="tour">导览</button><button class="xb-btn" type="button" data-act="explode">分解</button><button class="xb-btn" type="button" data-act="force">受力</button><button class="xb-btn" type="button" data-act="flood">泄洪</button><button class="xb-btn" type="button" data-act="dims">测量</button><button class="xb-btn" type="button" data-act="compare">对比</button><button class="xb-btn" type="button" data-act="build">建造</button><button class="xb-btn" type="button" data-act="turn">旋转</button></div><input class="xb-water" type="range" min="0" max="100" value="57" aria-label="洪水水位"><div class="xb-tip"><b></b><span></span></div>${svg}</div>`,
+  body: `<div class="iso-stage" tabindex="0" role="slider" aria-label="赵州桥拱券抽出程度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><style>${extraCss}</style><div class="xb-btns"><button class="xb-btn" type="button" data-act="tour">导览</button><button class="xb-btn" type="button" data-act="explode">分解</button><button class="xb-btn" type="button" data-act="force">受力</button><button class="xb-btn" type="button" data-act="flood">泄洪</button><button class="xb-btn" type="button" data-act="dims">测量</button><button class="xb-btn" type="button" data-act="compare">对比</button><button class="xb-btn" type="button" data-act="build">建造</button><button class="xb-btn" type="button" data-act="turn">旋转</button><button class="xb-btn" type="button" data-act="src">出处</button></div><input class="xb-water" type="range" min="0" max="100" value="57" aria-label="洪水水位"><div class="xb-tip"><b></b><span></span></div><div class="xb-src" role="dialog" aria-label="数据出处"><div class="xb-src-head"><b>数据出处</b><button class="xb-src-close" type="button" aria-label="关闭">×</button></div><div class="xb-src-tabs"></div><div class="xb-src-body"></div></div>${svg}</div>`,
 });
 
 writeFileSync(join(HERE, theme === "light" ? "zhaozhou-bridge-light.html" : "zhaozhou-bridge.html"), k.pageHtml({ title: "赵州桥 · 结构剖析", theme, body, script: kitScript() + SCENE_SRC + live, width: 1180 }));
