@@ -926,7 +926,7 @@ if (still.matches) touring = false;
 stage.addEventListener("contextmenu", (event) => event.preventDefault());
 stage.addEventListener("pointerdown", (event) => {
   guidedAuto = false; clearTimeout(guidedTimer);
-  if (event.target.closest && event.target.closest(".xb-btn,.xb-water")) return;
+  if (event.target.closest && event.target.closest(".xb-btn,.xb-water,.xb-src,.xb-quiz")) return;
   pointers.set(event.pointerId, [event.clientX, event.clientY]);
   if (pointers.size === 2) {
     const pts = [...pointers.values()];
@@ -941,6 +941,7 @@ stage.addEventListener("pointerdown", (event) => {
   try { stage.setPointerCapture(event.pointerId); } catch (err) {}
 });
 stage.addEventListener("pointermove", (event) => {
+  if (event.target.closest && event.target.closest(".xb-src,.xb-quiz")) return;
   if (pointers.has(event.pointerId)) pointers.set(event.pointerId, [event.clientX, event.clientY]);
   if (dragMode === "pinch") {
     if (pointers.size === 2) {
@@ -980,7 +981,7 @@ stage.addEventListener("pointermove", (event) => {
   steer(clamp((event.clientX - box.left) / box.width, 0, 1) * PULL_MAX);
 });
 function endPointer(event) {
-  if (event.target.closest && event.target.closest(".xb-btn,.xb-water")) return;
+  if (event.target.closest && event.target.closest(".xb-btn,.xb-water,.xb-src,.xb-quiz")) return;
   pointers.delete(event.pointerId);
   if (dragMode === "pinch") { if (pointers.size < 2) { dragMode = null; pinch0 = 0; } return; }
   const wasDrag = !!dragMode && dragMode !== "pending";
@@ -1006,6 +1007,15 @@ stage.addEventListener("pointerup", endPointer);
 stage.addEventListener("pointercancel", endPointer);
 stage.addEventListener("pointerleave", () => { if (!dragMode) hideTip(); });
 stage.addEventListener("wheel", (event) => {
+  const panel = event.target.closest && event.target.closest(".xb-src,.xb-quiz");
+  if (panel) {
+    const scroller = panel.querySelector(".xb-src-body") || panel;
+    const canUp = scroller.scrollTop > 0;
+    const canDown = scroller.scrollTop + scroller.clientHeight < scroller.scrollHeight - 1;
+    if ((event.deltaY < 0 && canUp) || (event.deltaY > 0 && canDown)) return;
+    event.preventDefault();
+    return;
+  }
   event.preventDefault();
   const z0 = CAMT.zoom;
   const z1 = clamp(z0 * Math.exp(-event.deltaY * 0.0016), 1, ZOOM_MAX);
