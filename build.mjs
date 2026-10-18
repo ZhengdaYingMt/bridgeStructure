@@ -571,7 +571,7 @@ function computeP() {
 }
 function applyVis() {
   for (const key of Object.keys(modeEls)) for (const g of modeEls[key]) g.style.display = mode[key] ? "" : "none";
-  waterSlider.style.display = mode.flood ? "" : "none";
+  waterSlider.style.display = mode.flood ? "block" : "none";
 }
 function applyClasses() {
   buildEls.forEach((g) => g.classList.toggle("off", !!(buildOn && !buildOn.has(buildKey(g)))));
@@ -1150,6 +1150,7 @@ function openQuiz() { quizPanel.classList.add('on'); btns.quiz.classList.add('on
 function closeQuiz() { quizPanel.classList.remove('on'); btns.quiz.classList.remove('on'); }
 function toggleQuiz() { quizPanel.classList.contains('on') ? closeQuiz() : openQuiz(); }
 quizPanel.querySelector('.next').addEventListener('click', (ev) => { ev.stopPropagation(); if (quizIdx + 1 < QUIZ_DATA.length) { quizIdx++; quizPick = null; quizRender(); } else { const d = quizPanel.querySelector('.done'); d.hidden = false; d.textContent = '三题完成！回到场景里再看看：拱肩的小拱为什么比拱顶的开口大，洪水先从哪孔漫过，水平推力往哪里走。'; quizPanel.querySelector('.why').hidden = true; quizPanel.querySelector('.next').hidden = true; } });
+quizPanel.querySelector('.xb-quiz-close').addEventListener('click', (ev) => { ev.stopPropagation(); closeQuiz(); });
 btns.quiz.addEventListener('click', (event) => { event.stopPropagation(); toggleQuiz(); });
 
 /* ---- 放映模式 ---- */
@@ -1208,6 +1209,10 @@ svg.focusing [data-info]:not(.foc){opacity:.55}
 .iso-stage.presenting .xb-btns:hover,.iso-stage.presenting .xb-btns:focus-within{opacity:1;pointer-events:auto}
 .iso-stage.presenting svg{transform:scale(1.12);transform-origin:center center;transition:transform .5s ease}
 /* 考考你 */
+.xb-quiz-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 8px;padding-bottom:6px;border-bottom:1px solid var(--anatomy-faint)}
+.xb-quiz-head b{color:var(--anatomy-strong);font-weight:600;letter-spacing:.06em}
+.xb-quiz-close{background:none;border:none;color:var(--anatomy-muted);font-size:17px;cursor:pointer;padding:2px 8px;min-width:34px;min-height:34px;line-height:1}
+.xb-quiz-close:hover{color:var(--anatomy-strong)}
 .xb-quiz{position:absolute;z-index:3;top:8px;left:8px;max-width:min(94vw,420px);margin:0 auto;background:var(--anatomy-card);border:1px solid var(--anatomy-faint);border-radius:6px;font:11px/1.7 ui-monospace,Menlo,monospace;color:var(--anatomy-text);box-shadow:0 4px 18px rgba(0,0,0,.12);display:none;padding:10px 14px}
 .xb-quiz.on{display:block}
 .xb-quiz .q{color:var(--anatomy-strong);font-weight:600;margin-bottom:6px}
@@ -1224,7 +1229,7 @@ svg.focusing [data-info]:not(.foc){opacity:.55}
 .xb-src.on{display:flex}
 .xb-src-head{display:flex;align-items:center;justify-content:space-between;padding:8px 12px 6px;border-bottom:1px solid var(--anatomy-faint);flex-shrink:0}
 .xb-src-head b{color:var(--anatomy-strong);font-weight:600;letter-spacing:.06em}
-.xb-src-close{background:none;border:none;color:var(--anatomy-muted);font-size:16px;cursor:pointer;padding:0 4px;line-height:1}
+.xb-src-close{background:none;border:none;color:var(--anatomy-muted);font-size:17px;cursor:pointer;padding:2px 8px;min-width:34px;min-height:34px;line-height:1}
 .xb-src-close:hover{color:var(--anatomy-strong)}
 .xb-src-tabs{display:flex;flex-wrap:wrap;gap:0;padding:0 8px;border-bottom:1px solid var(--anatomy-faint);flex-shrink:0}
 .xb-src-tab{font:10.5px/1 ui-monospace,Menlo,monospace;letter-spacing:.05em;color:var(--anatomy-muted);background:none;border:none;border-bottom:2px solid transparent;padding:7px 10px 6px;cursor:pointer}
@@ -1251,6 +1256,17 @@ svg.focusing [data-info]:not(.foc){opacity:.55}
 .iso-legend{gap:10px}
 .iso-keys{gap:8px 26px}
 @media (max-width:560px){.iso-plate{padding-bottom:148px}.iso-plate-corners{display:flex;flex-direction:column;justify-content:flex-end;gap:10px}.iso-plate-corner[data-corner="fig"],.iso-plate-corner[data-corner="title"]{position:absolute}.iso-plate-corner[data-corner="hint"],.iso-plate-corner[data-corner="readout"]{position:static;white-space:normal;line-height:1.6;text-align:left}}
+/* 手机端（≤768px）：按钮栏与考考你回到文档流、出处改为视口底部抽屉、隐藏键盘快捷键提示 */
+@media (max-width:768px){
+.iso-page{margin:20px auto 48px}
+.iso-plate{padding:44px 12px 88px}
+.iso-plate-corner[data-corner="hint"]{display:none}
+.xb-btns{position:static;justify-content:flex-start;max-width:none;margin:0 0 10px}
+.xb-btn{padding:8px 11px}
+.xb-water{position:static;width:100%;margin:0 0 10px}
+.xb-quiz{position:static;max-width:none;margin:0 0 10px;padding:10px 12px}
+.xb-src{position:fixed;bottom:8px;left:8px;right:8px;max-width:none;z-index:9;max-height:72vh;max-height:72dvh}
+}
 `;
 
 const body = k.plateHtml({
@@ -1266,7 +1282,7 @@ const body = k.plateHtml({
   ],
   caption:
     "隋开皇至大业年间（公元 595—605 年），匠师李春在洨河上建成安济桥（赵州桥）：单孔坦弧敞肩石拱桥，全长 64.4 m（含桥堍，桥身 50.82 m），净跨 37.02 m，矢高 7.23 m（矢跨比约 1:5，拱圈半径 27.31 m），河心不立桥墩。主拱 28 道拱券纵向并列砌筑，两肩各开两小拱（靠拱脚净跨 3.81 m、靠桥中 2.85 m），洪水时辅助分洪。券石间腰铁栓蹙（唐·张嘉贞《安济桥铭》），券背上施伏石联络各道单券（梁思成《赵县大石桥即安济桥》，1934）。1961 年列入国务院公布的第一批全国重点文物保护单位；1991 年被美国土木工程师学会（ASCE）选定为“国际土木工程历史古迹”（第 12 处）。尺寸据赵县人民政府、石家庄市人民政府、中国数字科技馆公布数据及茅以升《中国石拱桥》；拱圈厚度、小拱矢高、砌缝分块与洪水位为示意。",
-  body: `<div class="iso-stage" tabindex="0" role="slider" aria-label="赵州桥拱券抽出程度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><style>${extraCss}</style><div class="xb-btns"><button class="xb-btn" type="button" data-act="tour">导览</button><button class="xb-btn" type="button" data-act="explode">分解</button><button class="xb-btn" type="button" data-act="force">受力</button><button class="xb-btn" type="button" data-act="flood">泄洪</button><button class="xb-btn" type="button" data-act="dims">测量</button><button class="xb-btn" type="button" data-act="compare">对比</button><button class="xb-btn" type="button" data-act="build">建造</button><button class="xb-btn" type="button" data-act="turn">旋转</button><button class="xb-btn" type="button" data-act="src">出处</button><button class="xb-btn" type="button" data-act="quiz">考考你</button><button class="xb-btn" type="button" data-act="present">放映</button></div><input class="xb-water" type="range" min="0" max="100" value="57" aria-label="洪水水位"><div class="xb-tip"><b></b><span></span></div><div class="xb-src" role="dialog" aria-label="数据出处"><div class="xb-src-head"><b>数据出处</b><button class="xb-src-close" type="button" aria-label="关闭">×</button></div><div class="xb-src-tabs"></div><div class="xb-src-body"></div></div><div class="xb-quiz" role="dialog" aria-label="考考你"><div class="q"></div><div class="opts"></div><div class="why" hidden></div><div class="next" hidden></div><div class="done" hidden></div></div>${svg}</div>`,
+  body: `<div class="iso-stage" tabindex="0" role="slider" aria-label="赵州桥拱券抽出程度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><style>${extraCss}</style><div class="xb-btns"><button class="xb-btn" type="button" data-act="tour">导览</button><button class="xb-btn" type="button" data-act="explode">分解</button><button class="xb-btn" type="button" data-act="force">受力</button><button class="xb-btn" type="button" data-act="flood">泄洪</button><button class="xb-btn" type="button" data-act="dims">测量</button><button class="xb-btn" type="button" data-act="compare">对比</button><button class="xb-btn" type="button" data-act="build">建造</button><button class="xb-btn" type="button" data-act="turn">旋转</button><button class="xb-btn" type="button" data-act="src">出处</button><button class="xb-btn" type="button" data-act="quiz">考考你</button><button class="xb-btn" type="button" data-act="present">放映</button></div><input class="xb-water" type="range" min="0" max="100" value="57" aria-label="洪水水位"><div class="xb-tip"><b></b><span></span></div><div class="xb-src" role="dialog" aria-label="数据出处"><div class="xb-src-head"><b>数据出处</b><button class="xb-src-close" type="button" aria-label="关闭">×</button></div><div class="xb-src-tabs"></div><div class="xb-src-body"></div></div><div class="xb-quiz" role="dialog" aria-label="考考你"><div class="xb-quiz-head"><b>考考你</b><button class="xb-quiz-close" type="button" aria-label="关闭">×</button></div><div class="q"></div><div class="opts"></div><div class="why" hidden></div><div class="next" hidden></div><div class="done" hidden></div></div>${svg}</div>`,
 });
 
 writeFileSync(join(HERE, theme === "light" ? "zhaozhou-bridge-light.html" : "zhaozhou-bridge.html"), k.pageHtml({ title: "赵州桥 · 结构剖析", theme, body, script: (kitScript() + SCENE_SRC + live).replace("__SRC_B64__", SRC_B64), width: 1180 }));
