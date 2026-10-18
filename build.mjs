@@ -11,12 +11,22 @@ const SRC_DATA = JSON.parse(readFileSync(join(HERE, "sources.json"), "utf8"));
 // 面板数据与 sources.json 保持单一来源，改小程序 sources.js 后重跑
 // dump-sources.js + 本脚本即可同步，不会再出现模板里烤着旧数据的事故。
 const SRC_B64 = Buffer.from(JSON.stringify(SRC_DATA), "utf8").toString("base64");
-const theme = process.argv.includes("--light") ? "light" : "dark";
+const portraitBuild = process.argv.includes("--portrait");
+const theme = process.argv.includes("--light") || portraitBuild ? "light" : "dark";
+// 相机参数：竖版画布 700×820，初始方位角转向桥端头斜视角，桥身斜贯竖屏占满画面
+const AZ0 = portraitBuild ? 72 : 60;
+const EL0 = portraitBuild ? 34 : 30;
+const AZ_MIN = portraitBuild ? 55 : 26;
+const AZ_MAX = 94;
+const EL_MIN = 15;
+const EL_MAX = 56;
 
 // SCENE-BEGIN —— 场景模块：构建期与页面运行时共用（页面经 SCENE_SRC 注入）
 const KX = typeof k !== "undefined" && k ? k : { iso, pathOf, segment, slabOf, planOutline, insetPlan, boxCorners, topMatrix, faceTextSvg, depthOf, solidSvg, lineSvg, fitProjection, cameraOf };
-const WIDTH = 1180;
-const HEIGHT = 620;
+// 竖版页由 URL 判定（portrait.html），构建期由 --portrait 判定；同一份场景代码两端复用
+const portrait = (typeof location !== "undefined" && /portrait/.test(location.pathname)) || (typeof process !== "undefined" && process.argv.includes("--portrait"));
+const WIDTH = portrait ? 700 : 1180;
+const HEIGHT = portrait ? 820 : 620;
 // 实测数据：赵县人民政府、中国数字科技馆公布
 const TOTAL = 64.4;
 const HALF = TOTAL / 2;
@@ -54,7 +64,7 @@ const FIT_PTS = [
   [-19.4, DECK_W + PULL_MAX + 0.6, 0],
   [19.4, DECK_W + PULL_MAX + 0.6, 8.4],
 ];
-let P = KX.fitProjection(FIT_PTS, WIDTH, HEIGHT, { pad: 30, azimuth: 60, elevation: 30 });
+let P = KX.fitProjection(FIT_PTS, WIDTH, HEIGHT, { pad: 30, azimuth: portrait ? 72 : 60, elevation: portrait ? 34 : 30 });
 // 阴影分档与视线由当前相机推导，轨道旋转时随 P 重算（口径同 lathe.mjs）
 const LIGHT_UP = 1.2;
 const SHADE_BANDS = [0, 0.2, 0.42, 0.62];
@@ -557,9 +567,9 @@ const TOUR = [
   { text: "⑨ 地位 · 1961 年列入第一批全国重点文物保护单位；1991 年被美国土木工程师学会选定为“国际土木工程历史古迹”（第 12 处）" },
 ];
 // —— 3D 相机：方位角/仰角轨道 · 滚轮缩放 · 平移 · 部位聚焦（renderScene 随相机重建场景） ——
-const CAM = { az: 60, el: 30, zoom: 1, panx: 0, pany: 0 };
-const CAMT = { az: 60, el: 30, zoom: 1, panx: 0, pany: 0 };
-const AZ0 = 60, EL0 = 30, AZ_MIN = 26, AZ_MAX = 94, EL_MIN = 15, EL_MAX = 56, ZOOM_MAX = 7.5;
+const CAM = { az: ${AZ0}, el: ${EL0}, zoom: 1, panx: 0, pany: 0 };
+const CAMT = { az: ${AZ0}, el: ${EL0}, zoom: 1, panx: 0, pany: 0 };
+const AZ0 = ${AZ0}, EL0 = ${EL0}, AZ_MIN = ${AZ_MIN}, AZ_MAX = ${AZ_MAX}, EL_MIN = ${EL_MIN}, EL_MAX = ${EL_MAX}, ZOOM_MAX = 7.5;
 let camDirty = false, focusPart = null, turning = false, turnClock = 0;
 let dragMode = null, downMoved = 0, lastX = 0, lastY = 0, lastButton = 0, pinch0 = 0;
 let curHl = null, buildOn = null, downPart = null, downRing = null, lastFocusAt = 0;
@@ -1188,6 +1198,8 @@ const extraCss = `
 .xb-btn:active{transform:translateY(1px)}
 .xb-btn:focus-visible{outline:2px solid var(--anatomy-blue);outline-offset:1px}
 .xb-btn.on{color:var(--anatomy-strong);border-color:var(--anatomy-lit)}
+.xb-view-link,.xb-view-back{display:none;text-decoration:none}
+.xb-view-back{display:inline-flex;align-items:center}
 .xb-water{position:absolute;top:46px;right:10px;z-index:2;width:172px;accent-color:var(--anatomy-lit);display:none}
 .xb-lab{font:10.5px/1.4 ui-monospace,Menlo,monospace;fill:var(--anatomy-strong);paint-order:stroke;stroke:var(--anatomy-card);stroke-width:3px;letter-spacing:.04em}
 .xb-tip{position:absolute;z-index:2;pointer-events:none;transform:translate(14px,-130%);font:11px/1.6 ui-monospace,Menlo,monospace;color:var(--anatomy-text);background:var(--anatomy-card);border:1px solid var(--anatomy-faint);border-radius:4px;padding:5px 9px;white-space:nowrap;opacity:0;transition:opacity .15s}
@@ -1277,11 +1289,15 @@ svg.focusing [data-info]:not(.foc){opacity:.55}
 .iso-notes[open] summary::before{content:"▾"}
 .xb-btns{position:static;justify-content:flex-start;max-width:none;margin:0 0 10px}
 .xb-btn{padding:8px 11px}
+.xb-view-link{display:inline-flex;align-items:center}
 .xb-water{position:static;width:100%;margin:0 0 10px}
 .xb-quiz{position:static;max-width:none;margin:0 0 10px;padding:10px 12px}
 .xb-src{position:fixed;bottom:8px;left:8px;right:8px;max-width:none;z-index:9;max-height:72vh;max-height:72dvh}
 }
 `;
+
+/* 横竖版互切：竖版页返回横版（全端可见），横版页入口仅移动端显示 */
+const viewLink = portraitBuild ? '<a class="xb-btn xb-view-back" href="./index.html">横版视图</a>' : '<a class="xb-btn xb-view-link" href="./zhaozhou-bridge-portrait.html">竖版视图</a>';
 
 const body = k.plateHtml({
   fig: "Fig 1",
@@ -1296,9 +1312,10 @@ const body = k.plateHtml({
   ],
   caption:
     "隋开皇至大业年间（公元 595—605 年），匠师李春在洨河上建成安济桥（赵州桥）：单孔坦弧敞肩石拱桥，全长 64.4 m（含桥堍，桥身 50.82 m），净跨 37.02 m，矢高 7.23 m（矢跨比约 1:5，拱圈半径 27.31 m），河心不立桥墩。主拱 28 道拱券纵向并列砌筑，两肩各开两小拱（靠拱脚净跨 3.81 m、靠桥中 2.85 m），洪水时辅助分洪。券石间腰铁栓蹙（唐·张嘉贞《安济桥铭》），券背上施伏石联络各道单券（梁思成《赵县大石桥即安济桥》，1934）。1961 年列入国务院公布的第一批全国重点文物保护单位；1991 年被美国土木工程师学会（ASCE）选定为“国际土木工程历史古迹”（第 12 处）。尺寸据赵县人民政府、石家庄市人民政府、中国数字科技馆公布数据及茅以升《中国石拱桥》；拱圈厚度、小拱矢高、砌缝分块与洪水位为示意。",
-  body: `<div class="iso-stage" tabindex="0" role="slider" aria-label="赵州桥拱券抽出程度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><style>${extraCss}</style><div class="xb-btns"><button class="xb-btn" type="button" data-act="tour">导览</button><button class="xb-btn" type="button" data-act="explode">分解</button><button class="xb-btn" type="button" data-act="force">受力</button><button class="xb-btn" type="button" data-act="flood">泄洪</button><button class="xb-btn" type="button" data-act="dims">测量</button><button class="xb-btn" type="button" data-act="compare">对比</button><button class="xb-btn" type="button" data-act="build">建造</button><button class="xb-btn" type="button" data-act="turn">旋转</button><button class="xb-btn" type="button" data-act="src">出处</button><button class="xb-btn" type="button" data-act="quiz">考考你</button><button class="xb-btn" type="button" data-act="present">放映</button></div><input class="xb-water" type="range" min="0" max="100" value="57" aria-label="洪水水位"><div class="xb-tip"><b></b><span></span></div><div class="xb-src" role="dialog" aria-label="数据出处"><div class="xb-src-head"><b>数据出处</b><button class="xb-src-close" type="button" aria-label="关闭">×</button></div><div class="xb-src-tabs"></div><div class="xb-src-body"></div></div><div class="xb-quiz" role="dialog" aria-label="考考你"><div class="xb-quiz-head"><b>考考你</b><button class="xb-quiz-close" type="button" aria-label="关闭">×</button></div><div class="q"></div><div class="opts"></div><div class="why" hidden></div><div class="next" hidden></div><div class="done" hidden></div></div>${svg}</div>`,
+  body: `<div class="iso-stage" tabindex="0" role="slider" aria-label="赵州桥拱券抽出程度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><style>${extraCss}</style><div class="xb-btns"><button class="xb-btn" type="button" data-act="tour">导览</button><button class="xb-btn" type="button" data-act="explode">分解</button><button class="xb-btn" type="button" data-act="force">受力</button><button class="xb-btn" type="button" data-act="flood">泄洪</button><button class="xb-btn" type="button" data-act="dims">测量</button><button class="xb-btn" type="button" data-act="compare">对比</button><button class="xb-btn" type="button" data-act="build">建造</button><button class="xb-btn" type="button" data-act="turn">旋转</button><button class="xb-btn" type="button" data-act="src">出处</button><button class="xb-btn" type="button" data-act="quiz">考考你</button><button class="xb-btn" type="button" data-act="present">放映</button>${viewLink}</div><input class="xb-water" type="range" min="0" max="100" value="57" aria-label="洪水水位"><div class="xb-tip"><b></b><span></span></div><div class="xb-src" role="dialog" aria-label="数据出处"><div class="xb-src-head"><b>数据出处</b><button class="xb-src-close" type="button" aria-label="关闭">×</button></div><div class="xb-src-tabs"></div><div class="xb-src-body"></div></div><div class="xb-quiz" role="dialog" aria-label="考考你"><div class="xb-quiz-head"><b>考考你</b><button class="xb-quiz-close" type="button" aria-label="关闭">×</button></div><div class="q"></div><div class="opts"></div><div class="why" hidden></div><div class="next" hidden></div><div class="done" hidden></div></div>${svg}</div>`,
 });
 
-writeFileSync(join(HERE, theme === "light" ? "zhaozhou-bridge-light.html" : "zhaozhou-bridge.html"), k.pageHtml({ title: "赵州桥 · 结构剖析", theme, body, script: (kitScript() + SCENE_SRC + live).replace("__SRC_B64__", SRC_B64), width: 1180 }));
-console.log("wrote", theme === "light" ? "zhaozhou-bridge-light.html" : "zhaozhou-bridge.html");
+const OUT_NAME = portraitBuild ? "zhaozhou-bridge-portrait.html" : theme === "light" ? "zhaozhou-bridge-light.html" : "zhaozhou-bridge.html";
+writeFileSync(join(HERE, OUT_NAME), k.pageHtml({ title: portraitBuild ? "赵州桥 · 结构剖析（竖版）" : "赵州桥 · 结构剖析", theme, body, script: (kitScript() + SCENE_SRC + live).replace("__SRC_B64__", SRC_B64), width: WIDTH }));
+console.log("wrote", OUT_NAME);
 
