@@ -1168,6 +1168,13 @@ function togglePresent() {
 }
 btns.present.addEventListener('click', (event) => { event.stopPropagation(); togglePresent(); });
 
+/* 图例与史实说明：桌面常显，移动端默认折叠为一行摘要 */
+const notesMq = window.matchMedia('(max-width:768px)');
+const notesEl = document.querySelector('.iso-notes');
+const syncNotes = () => { if (notesEl) notesEl.open = !notesMq.matches; };
+syncNotes();
+if (notesMq.addEventListener) notesMq.addEventListener('change', syncNotes);
+
 setModes({});
 fillWater();
 draw();
@@ -1255,12 +1262,19 @@ svg.focusing [data-info]:not(.foc){opacity:.55}
 .iso-plate-corner[data-corner="readout"]{bottom:12px;left:0;right:0;text-align:right;white-space:normal;line-height:1.6}
 .iso-legend{gap:10px}
 .iso-keys{gap:8px 26px}
+.iso-notes{display:grid;gap:8px}
+.iso-notes summary{display:none}
+.iso-notes summary::-webkit-details-marker{display:none}
+.iso-notes:not([open]) .iso-keys,.iso-notes:not([open]) .iso-caption{display:none}
 @media (max-width:560px){.iso-plate{padding-bottom:148px}.iso-plate-corners{display:flex;flex-direction:column;justify-content:flex-end;gap:10px}.iso-plate-corner[data-corner="fig"],.iso-plate-corner[data-corner="title"]{position:absolute}.iso-plate-corner[data-corner="hint"],.iso-plate-corner[data-corner="readout"]{position:static;white-space:normal;line-height:1.6;text-align:left}}
 /* 手机端（≤768px）：按钮栏与考考你回到文档流、出处改为视口底部抽屉、隐藏键盘快捷键提示 */
 @media (max-width:768px){
 .iso-page{margin:20px auto 48px}
-.iso-plate{padding:44px 12px 88px}
+.iso-plate{padding:40px 10px 56px}
 .iso-plate-corner[data-corner="hint"]{display:none}
+.iso-notes summary{display:flex;align-items:center;gap:6px;list-style:none;cursor:pointer;color:var(--anatomy-muted);font-size:13px;line-height:1.5}
+.iso-notes summary::before{content:"▸";font-size:10px}
+.iso-notes[open] summary::before{content:"▾"}
 .xb-btns{position:static;justify-content:flex-start;max-width:none;margin:0 0 10px}
 .xb-btn{padding:8px 11px}
 .xb-water{position:static;width:100%;margin:0 0 10px}
