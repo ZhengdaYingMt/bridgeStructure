@@ -1984,9 +1984,11 @@ btns.src.addEventListener('click', (event) => { event.stopPropagation(); toggleS
 srcPanel.addEventListener('click', (event) => { if (event.target.closest('.xb-src-close')) { event.stopPropagation(); closeSrc(); } });
 
 const QUIZ_DATA = [
-  {q:'为什么四个小拱开在拱肩而不是拱顶？',opts:['拱顶受力最大，不能开洞','拱肩挖空省料、分洪，拱顶开洞会削弱主拱','为了好看，对称美观'],a:1,why:'拱肩是压力最低的区域，挖去石料既减轻自重又增加过水断面；拱顶是拱轴的关键截面，开洞会破坏力线。'},
-  {q:'洪水上涨时，水最先从哪对小拱漫过？',opts:['靠拱脚的外侧小拱','靠拱顶的内侧小拱','四孔同时'],a:0,why:'外侧小拱券脚落在主拱背上较低处（3.91 m），内侧较高（6.05 m）。水位先过外侧券脚，所以外侧先过水。'},
-  {q:'拱桥的水平推力最后由谁顶住？',opts:['拱顶的伏石','两岸的桥台和地基','腰铁和铁梁'],a:1,why:'拱把竖向荷载转为沿拱轴的压力，传到拱脚后由桥台承担，再由砂土地基平衡。赵州桥桥台直接砌在粗砂上，千年不倒。'}
+  {q:'赵州桥在世界桥梁史上首创的结构是（　）',opts:['A. 联拱','B. 敞肩拱','C. 悬索','D. 梁式'],a:1,why:'赵州桥是单孔坦弧敞肩石拱桥：桥身两肩各开两孔小拱。这种敞肩做法在世界桥梁史上是首创，比欧洲同类拱桥早 700 多年。'},
+  {q:'赵州桥桥身两肩各开（　）个小拱',opts:['A. 1 个','B. 2 个','C. 4 个','D. 6 个'],a:2,why:'两肩各开两孔，全桥共四孔敞肩小拱：靠桥堍一孔净跨 3.81 m，近桥中一孔 2.85 m，既减轻桥身自重又能辅助分洪。'},
+  {q:'赵州桥主拱由（　）道拱券纵向并列砌筑',opts:['A. 18 道','B. 24 道','C. 28 道','D. 30 道'],a:2,why:'主拱由 28 道单券纵向并列砌筑，每道宽约 0.32 m；券石之间以腰铁栓蹙相连，合成一个完整的拱圈。'},
+  {q:'拱券采用“下宽上窄”收分砌筑的主要目的是（　）',opts:['A. 让桥面更美观','B. 防止拱券外倾','C. 节省建桥石料','D. 方便行人通行'],a:1,why:'收分后券体截面呈下宽上窄的梯形，券石互相咬合、重心下移，合力更贴近轴线，拱券不会向外倾倒；顺带也省下石料，但稳住券体才是首要目的。'},
+  {q:'赵州桥的建造年代与主持匠师是（　）',opts:['A. 唐朝 · 鲁班','B. 隋朝 · 李春','C. 宋朝 · 李春','D. 汉朝 · 李冰'],a:1,why:'赵州桥原名安济桥，建于隋代开皇至大业年间（公元 595—605 年），由匠师李春主持设计建造；唐代张嘉贞《安济桥铭》有“命匠人李春造”的记载。'}
 ];
 const quizPanel = stage.querySelector('.xb-quiz');
 let quizIdx = 0, quizPick = null;
@@ -2015,7 +2017,7 @@ function quizRender() {
 function openQuiz() { quizPanel.classList.add('on'); btns.quiz.classList.add('on'); quizIdx = 0; quizPick = null; quizRender(); }
 function closeQuiz() { quizPanel.classList.remove('on'); btns.quiz.classList.remove('on'); }
 function toggleQuiz() { quizPanel.classList.contains('on') ? closeQuiz() : openQuiz(); }
-quizPanel.querySelector('.next').addEventListener('click', (ev) => { ev.stopPropagation(); if (quizIdx + 1 < QUIZ_DATA.length) { quizIdx++; quizPick = null; quizRender(); } else { const d = quizPanel.querySelector('.done'); d.hidden = false; d.textContent = '三题完成！回到场景里再看看：拱肩的小拱为什么比拱顶的开口大，洪水先从哪孔漫过，水平推力往哪里走。'; quizPanel.querySelector('.why').hidden = true; quizPanel.querySelector('.next').hidden = true; } });
+quizPanel.querySelector('.next').addEventListener('click', (ev) => { ev.stopPropagation(); if (quizIdx + 1 < QUIZ_DATA.length) { quizIdx++; quizPick = null; quizRender(); } else { const d = quizPanel.querySelector('.done'); d.hidden = false; d.textContent = '五题完成！回到场景里再看看：敞肩小拱为什么开在拱肩而不是拱顶，洪水先从哪孔漫过，28 道券石又是怎么合成一个整体拱圈的。'; quizPanel.querySelector('.why').hidden = true; quizPanel.querySelector('.next').hidden = true; } });
 quizPanel.querySelector('.xb-quiz-close').addEventListener('click', (ev) => { ev.stopPropagation(); closeQuiz(); });
 btns.quiz.addEventListener('click', (event) => { event.stopPropagation(); toggleQuiz(); });
 
