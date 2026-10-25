@@ -1129,7 +1129,7 @@ srcPanel.addEventListener('click', (event) => { if (event.target.closest('.xb-sr
 
 const QUIZ_DATA = [
   {q:'赵州桥在世界桥梁史上首创的结构是（　）',opts:['A. 联拱','B. 敞肩拱','C. 悬索','D. 梁式'],a:1,why:'赵州桥是单孔坦弧敞肩石拱桥：桥身两肩各开两孔小拱。这种敞肩做法在世界桥梁史上是首创，比欧洲同类拱桥早 700 多年。'},
-  {q:'赵州桥桥身两肩各开（　）个小拱',opts:['A. 1 个','B. 2 个','C. 4 个','D. 6 个'],a:2,why:'两肩各开两孔，全桥共四孔敞肩小拱：靠桥堍一孔净跨 3.81 m，近桥中一孔 2.85 m，既减轻桥身自重又能辅助分洪。'},
+  {q:'赵州桥桥身两肩各开（　）个小拱',opts:['A. 1 个','B. 2 个','C. 4 个','D. 6 个'],a:1,why:'每肩各开 2 孔，全桥合计 4 孔敞肩小拱：靠桥堍一孔净跨 3.81 m，近桥中一孔 2.85 m，既减轻桥身自重又能辅助分洪。'},
   {q:'赵州桥主拱由（　）道拱券纵向并列砌筑',opts:['A. 18 道','B. 24 道','C. 28 道','D. 30 道'],a:2,why:'主拱由 28 道单券纵向并列砌筑，每道宽约 0.32 m；券石之间以腰铁栓蹙相连，合成一个完整的拱圈。'},
   {q:'拱券采用“下宽上窄”收分砌筑的主要目的是（　）',opts:['A. 让桥面更美观','B. 防止拱券外倾','C. 节省建桥石料','D. 方便行人通行'],a:1,why:'收分后券体截面呈下宽上窄的梯形，券石互相咬合、重心下移，合力更贴近轴线，拱券不会向外倾倒；顺带也省下石料，但稳住券体才是首要目的。'},
   {q:'赵州桥的建造年代与主持匠师是（　）',opts:['A. 唐朝 · 鲁班','B. 隋朝 · 李春','C. 宋朝 · 李春','D. 汉朝 · 李冰'],a:1,why:'赵州桥原名安济桥，建于隋代开皇至大业年间（公元 595—605 年），由匠师李春主持设计建造；唐代张嘉贞《安济桥铭》有“命匠人李春造”的记载。'}
@@ -1158,8 +1158,8 @@ function quizRender() {
   else { whyEl.hidden = true; nextEl.hidden = true; }
   doneEl.hidden = true;
 }
-function openQuiz() { quizPanel.classList.add('on'); btns.quiz.classList.add('on'); quizIdx = 0; quizPick = null; quizRender(); }
-function closeQuiz() { quizPanel.classList.remove('on'); btns.quiz.classList.remove('on'); }
+function openQuiz() { quizPanel.classList.add('on'); btns.quiz.classList.add('on'); stage.classList.add('quiz-on'); quizIdx = 0; quizPick = null; quizRender(); }
+function closeQuiz() { quizPanel.classList.remove('on'); btns.quiz.classList.remove('on'); stage.classList.remove('quiz-on'); }
 function toggleQuiz() { quizPanel.classList.contains('on') ? closeQuiz() : openQuiz(); }
 quizPanel.querySelector('.next').addEventListener('click', (ev) => { ev.stopPropagation(); if (quizIdx + 1 < QUIZ_DATA.length) { quizIdx++; quizPick = null; quizRender(); } else { const d = quizPanel.querySelector('.done'); d.hidden = false; d.textContent = '五题完成！回到场景里再看看：敞肩小拱为什么开在拱肩而不是拱顶，洪水先从哪孔漫过，28 道券石又是怎么合成一个整体拱圈的。'; quizPanel.querySelector('.why').hidden = true; quizPanel.querySelector('.next').hidden = true; } });
 quizPanel.querySelector('.xb-quiz-close').addEventListener('click', (ev) => { ev.stopPropagation(); closeQuiz(); });
@@ -1231,20 +1231,23 @@ svg.focusing [data-info]:not(.foc){opacity:.55}
 .iso-stage.presenting svg{transform:scale(1.12);transform-origin:center center;transition:transform .5s ease}
 /* 考考你 */
 .xb-quiz-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 8px;padding-bottom:6px;border-bottom:1px solid var(--anatomy-faint)}
-.xb-quiz-head b{color:var(--anatomy-strong);font-weight:600;letter-spacing:.06em}
+.xb-quiz-head b{color:var(--anatomy-strong);font-weight:600;letter-spacing:.06em;font-size:16px}
 .xb-quiz-close{background:none;border:none;color:var(--anatomy-muted);font-size:17px;cursor:pointer;padding:2px 8px;min-width:34px;min-height:34px;line-height:1}
 .xb-quiz-close:hover{color:var(--anatomy-strong)}
-.xb-quiz{position:absolute;z-index:3;top:8px;left:8px;max-width:min(94vw,420px);margin:0 auto;background:var(--anatomy-card);border:1px solid var(--anatomy-faint);border-radius:6px;font:11px/1.7 ui-monospace,Menlo,monospace;color:var(--anatomy-text);box-shadow:0 4px 18px rgba(0,0,0,.12);display:none;padding:10px 14px}
+.xb-quiz{position:absolute;z-index:6;top:50%;left:50%;transform:translate(-50%,-50%);width:min(92vw,660px);max-width:min(92vw,660px);background:var(--anatomy-card);border:1px solid var(--anatomy-faint);border-radius:10px;font:15px/1.7 ui-monospace,Menlo,monospace;color:var(--anatomy-text);box-shadow:0 24px 64px rgba(0,0,0,.34);display:none;padding:24px 28px}
 .xb-quiz.on{display:block}
-.xb-quiz .q{color:var(--anatomy-strong);font-weight:600;margin-bottom:6px}
-.xb-quiz .opt{display:block;width:100%;text-align:left;padding:5px 8px;margin:2px 0;background:none;border:1px solid var(--anatomy-faint);border-radius:4px;color:var(--anatomy-muted);font:11px/1.6 ui-monospace,Menlo,monospace;cursor:pointer}
+.xb-quiz .q{color:var(--anatomy-strong);font-weight:600;font-size:19px;line-height:1.6;margin-bottom:14px}
+.xb-quiz .opt{display:block;width:100%;text-align:left;padding:11px 14px;margin:7px 0;background:none;border:1px solid var(--anatomy-faint);border-radius:6px;color:var(--anatomy-muted);font:15px/1.6 ui-monospace,Menlo,monospace;cursor:pointer}
 .xb-quiz .opt:hover{color:var(--anatomy-strong);border-color:var(--anatomy-mid)}
 .xb-quiz .opt.right{color:#6c6;border-color:#4a4;background:rgba(68,170,68,.08)}
 .xb-quiz .opt.wrong{color:#c66;border-color:#a44;background:rgba(170,68,68,.08)}
-.xb-quiz .why{margin-top:6px;padding:6px 8px;background:rgba(255,255,255,.04);border-radius:4px;color:var(--anatomy-muted);font-size:10.5px;line-height:1.65}
-.xb-quiz .done{margin-top:6px;color:var(--anatomy-muted);line-height:1.65}
-.xb-quiz .next{margin-top:8px;text-align:center;padding:6px;border:1px solid var(--anatomy-faint);border-radius:4px;color:var(--anatomy-strong);cursor:pointer}
+.xb-quiz .why{margin-top:12px;padding:11px 13px;background:rgba(255,255,255,.05);border-radius:6px;color:var(--anatomy-text);font-size:13.5px;line-height:1.7}
+.xb-quiz .done{margin-top:12px;color:var(--anatomy-muted);font-size:14px;line-height:1.7}
+.xb-quiz .next{margin-top:14px;text-align:center;padding:11px;border:1px solid var(--anatomy-faint);border-radius:6px;color:var(--anatomy-strong);font-size:15px;cursor:pointer}
 .xb-quiz .next:hover{border-color:var(--anatomy-mid)}
+/* 打开考考你：压暗画面、聚焦卡片 */
+.iso-stage.quiz-on .iso-plate-corners,.iso-stage.quiz-on .xb-btns{opacity:.22;transition:opacity .25s}
+.iso-stage.quiz-on .iso-svg{filter:brightness(.66) saturate(.85);transition:filter .25s}
 /* 数据出处面板：底部抽屉，五栏标签切换 */
 .xb-src{position:absolute;z-index:3;bottom:8px;left:8px;right:8px;max-width:min(94vw,680px);margin:0 auto;background:var(--anatomy-card);border:1px solid var(--anatomy-faint);border-radius:6px;font:11px/1.7 ui-monospace,Menlo,monospace;color:var(--anatomy-text);box-shadow:0 4px 18px rgba(0,0,0,.12);display:none;flex-direction:column;max-height:72vh;overflow:hidden}
 .xb-src.on{display:flex}
@@ -1270,21 +1273,23 @@ svg.focusing [data-info]:not(.foc){opacity:.55}
 .xb-src-annals .y{flex-shrink:0;width:76px;text-align:right;color:var(--anatomy-strong);font-weight:600}
 .xb-src-annals .t{flex:1;color:var(--anatomy-text)}
 .xb-src-annals .s{flex-shrink:0;width:170px;color:var(--anatomy-muted);font-size:9.5px;padding-top:2px}
-/* 底部角落分层：快捷键两行在上，动态读数独占底行，避免长文案互压 */
-.iso-plate{padding-bottom:118px}
+/* 顶部留给导览提示横幅：读数不再挤在右下角 */
+.iso-plate{padding:128px 24px 100px}
+.iso-plate-corner[data-corner="fig"],.iso-plate-corner[data-corner="title"]{top:-14px}
 .iso-plate-corner[data-corner="hint"]{white-space:pre-line;line-height:1.9;bottom:50px;max-width:100%}
-.iso-plate-corner[data-corner="readout"]{bottom:12px;left:0;right:0;text-align:right;white-space:normal;line-height:1.6}
+/* 读数与导览提示：挪到画面上方居中并放大，别挤在右下角 */
+.iso-plate .iso-plate-corner[data-corner="readout"]{top:0;bottom:auto;left:50%;right:auto;transform:translateX(-50%);width:min(88%,780px);text-align:center;white-space:normal;line-height:1.65;color:var(--anatomy-strong);font-size:16px;letter-spacing:0;background:var(--anatomy-card);border:1px solid var(--anatomy-faint);border-radius:8px;padding:12px 20px;box-shadow:0 8px 26px rgba(0,0,0,.18);z-index:3}
 .iso-legend{gap:10px}
 .iso-keys{gap:8px 26px}
 .iso-notes{display:grid;gap:8px}
 .iso-notes summary{display:none}
 .iso-notes summary::-webkit-details-marker{display:none}
 .iso-notes:not([open]) .iso-keys,.iso-notes:not([open]) .iso-caption{display:none}
-@media (max-width:560px){.iso-plate{padding-bottom:148px}.iso-plate-corners{display:flex;flex-direction:column;justify-content:flex-end;gap:10px}.iso-plate-corner[data-corner="fig"],.iso-plate-corner[data-corner="title"]{position:absolute}.iso-plate-corner[data-corner="hint"],.iso-plate-corner[data-corner="readout"]{position:static;white-space:normal;line-height:1.6;text-align:left}}
+@media (max-width:560px){.iso-plate{padding:130px 12px 56px}.iso-plate-corner[data-corner="fig"],.iso-plate-corner[data-corner="title"]{display:none}.iso-plate .iso-plate-corner[data-corner="readout"]{left:0;right:0;top:0;transform:none;width:auto;text-align:left;font-size:13.5px;padding:8px 12px}}
 /* 手机端（≤768px）：按钮栏与考考你回到文档流、出处改为视口底部抽屉、隐藏键盘快捷键提示 */
 @media (max-width:768px){
 .iso-page{margin:20px auto 48px}
-.iso-plate{padding:40px 10px 56px}
+.iso-plate{padding:150px 10px 56px}
 .iso-plate-corner[data-corner="hint"]{display:none}
 .iso-notes summary{display:flex;align-items:center;gap:6px;list-style:none;cursor:pointer;color:var(--anatomy-muted);font-size:13px;line-height:1.5}
 .iso-notes summary::before{content:"▸";font-size:10px}
@@ -1293,7 +1298,7 @@ svg.focusing [data-info]:not(.foc){opacity:.55}
 .xb-btn{padding:8px 11px}
 .xb-view-link{display:inline-flex;align-items:center}
 .xb-water{position:static;width:100%;margin:0 0 10px}
-.xb-quiz{position:static;max-width:none;margin:0 0 10px;padding:10px 12px}
+.xb-quiz{position:static;width:auto;max-width:none;transform:none;margin:0 0 12px;padding:14px 16px;font-size:14px}.xb-quiz .q{font-size:16px;margin-bottom:10px}.xb-quiz .opt{font-size:14px;padding:9px 10px;margin:5px 0}.xb-quiz .why{font-size:12.5px;padding:9px 10px}.xb-quiz .next{font-size:14px;padding:9px}
 .xb-src{position:fixed;bottom:8px;left:8px;right:8px;max-width:none;z-index:9;max-height:72vh;max-height:72dvh}
 }
 `;
