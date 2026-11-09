@@ -78,6 +78,32 @@ function refreshLight() {
 }
 refreshLight();
 
+// 写实配色：按构造层给石料上色。赵州桥石料以青灰石灰岩为主——券石冷灰、
+// 侧墙伏石偏暖、桥面青石板、栏板略浅，河岸土黄、河床压暗衬水色。
+// shade-0(背光最暗)→shade-3(最亮)+top(顶面受光)，色值为绝对色，深浅主题共用。
+// data-lit 的第 28 道券用 face/lit-* 覆写，保持"可抽出"的高亮语义。
+const MATS = {
+  bed: "--anatomy-paper:#55605c;--anatomy-shade-0:#3b4441;--anatomy-shade-1:#434d4a;--anatomy-shade-2:#4b5552;--anatomy-shade-3:#535d59;--anatomy-top:#626d69",
+  bank: "--anatomy-paper:#a08a64;--anatomy-shade-0:#6e5e42;--anatomy-shade-1:#7e6d4d;--anatomy-shade-2:#8d7c58;--anatomy-shade-3:#9c8a63;--anatomy-top:#ad9a72",
+  road: "--anatomy-paper:#8f8b82;--anatomy-shade-0:#615e57;--anatomy-shade-1:#6e6b62;--anatomy-shade-2:#7b786e;--anatomy-shade-3:#888479;--anatomy-top:#999588",
+  abut: "--anatomy-paper:#8e918c;--anatomy-shade-0:#5c5f5b;--anatomy-shade-1:#6a6d68;--anatomy-shade-2:#787b75;--anatomy-shade-3:#868983;--anatomy-top:#999c95",
+  arch: "--anatomy-paper:#9aa3a6;--anatomy-face:#a8b1b4;--anatomy-shade-0:#646e73;--anatomy-shade-1:#737d82;--anatomy-shade-2:#828c91;--anatomy-shade-3:#919ba0;--anatomy-top:#a7b0b3;--anatomy-lit-shade:#8b959a;--anatomy-lit-top:#b6bfc2",
+  wall: "--anatomy-paper:#a89a78;--anatomy-shade-0:#73674e;--anatomy-shade-1:#83775c;--anatomy-shade-2:#938769;--anatomy-shade-3:#a39576;--anatomy-top:#b5a884",
+  fu: "--anatomy-paper:#b3a482;--anatomy-shade-0:#7d7156;--anatomy-shade-1:#8d8163;--anatomy-shade-2:#9d9171;--anatomy-shade-3:#ada174;--anatomy-top:#c1b28c",
+  deck: "--anatomy-paper:#8e9294;--anatomy-shade-0:#5d6164;--anatomy-shade-1:#6a6e71;--anatomy-shade-2:#777b7e;--anatomy-shade-3:#84888b;--anatomy-top:#989da0",
+  rail: "--anatomy-paper:#b5b2a6;--anatomy-shade-0:#7e7c72;--anatomy-shade-1:#8e8c81;--anatomy-shade-2:#9e9c90;--anatomy-shade-3:#aeac9f;--anatomy-top:#c4c1b2",
+  cart: "--anatomy-paper:#96683f;--anatomy-shade-0:#64462a;--anatomy-shade-1:#755433;--anatomy-shade-2:#86633d;--anatomy-shade-3:#977247;--anatomy-top:#a97f51",
+  tunnel: "--anatomy-paper:#3d4245;--anatomy-shade-0:#3d4245;--anatomy-shade-1:#3d4245;--anatomy-shade-2:#3d4245;--anatomy-shade-3:#3d4245;--anatomy-top:#3d4245",
+  water: "--anatomy-blue:#1b9aae;--anatomy-hi:#0b5f73;--anatomy-mid:#137f95",
+  flood: "--anatomy-blue:#1b9aae;--anatomy-hi:#0b5f73",
+};
+// 28 道券逐道色差：冷暖三档循环，砌缝读得出"一道一道"的砌法
+MATS.rings = [
+  "--anatomy-paper:#99a2a6;--anatomy-shade-0:#636d72;--anatomy-shade-1:#727c81;--anatomy-shade-2:#818b90;--anatomy-shade-3:#909a9f;--anatomy-top:#a6afb2",
+  "--anatomy-paper:#9ba39b;--anatomy-shade-0:#656d64;--anatomy-shade-1:#747c73;--anatomy-shade-2:#838b82;--anatomy-shade-3:#929a91;--anatomy-top:#a8b0a6",
+  "--anatomy-paper:#a3a8ab;--anatomy-shade-0:#6d7276;--anatomy-shade-1:#7c8185;--anatomy-shade-2:#8b9094;--anatomy-shade-3:#9aa0a3;--anatomy-top:#b0b5b8",
+];
+
 const at = (point) => KX.iso(point, P);
 const S = (paths, style) => KX.solidSvg(paths, style);
 const L = (d, style) => KX.lineSvg(d, style);
@@ -121,24 +147,24 @@ function wallPts(y, r = R_FU) {
 
 function terrainAndWater() {
   const items = [];
-  items.push({ center: [0, 0, -3], svg: S(KX.slabOf({ x: -21, y: -16, w: 42, d: 32, r: 1 }, -3.4, 0.6, P, 6), { tone: "lo" }) });
+  items.push({ center: [0, 0, -3], svg: `<g style="${MATS.bed}">${S(KX.slabOf({ x: -21, y: -16, w: 42, d: 32, r: 1 }, -3.4, 0.6, P, 6), { tone: "lo" })}</g>` });
   const wRect = qp([[-20.3, -15, WATER_Z], [20.3, -15, WATER_Z], [20.3, 15, WATER_Z], [-20.3, 15, WATER_Z]]);
   const wDark = qp([[-19.3, -DECK_W, WATER_Z], [19.3, -DECK_W, WATER_Z], [19.3, DECK_W, WATER_Z], [-19.3, DECK_W, WATER_Z]]);
   const water = [
-    `<path class="iso-fill" d="${wRect}" style="fill:var(--anatomy-blue);opacity:.10"/>`,
+    `<path class="iso-fill" d="${wRect}" style="fill:var(--anatomy-blue);opacity:.22"/>`,
     `<path class="iso-shade" data-shade="0" d="${wDark}" style="opacity:.5"/>`,
     L(wRect, { tone: "faint" }),
     L([-14, -7, 0, 7, 14].map((x) => KX.segment([x, -15, WATER_Z], [x, 15, WATER_Z], P)).join(""), { tone: "mid", flow: true }),
   ].join("");
-  items.push({ center: [0, 0, WATER_Z], svg: `<g data-info="洨河|单孔长跨过河，河心不立桥墩">${water}</g>` });
+  items.push({ center: [0, 0, WATER_Z], svg: `<g data-info="洨河|单孔长跨过河，河心不立桥墩" style="${MATS.water}">${water}</g>` });
   for (const sx of [-1, 1]) {
     const bank = { x: sx < 0 ? -40 : 20.5, y: -16, w: 19.5, d: 32, r: 1 };
-    items.push({ center: [sx * 30, 0, -1], svg: S(KX.slabOf(bank, -3.4, 4.2, P, 6, 0.4), { tone: "lo" }) + L(KX.planOutline(KX.insetPlan(bank, 2), 0.8, P, 6), { tone: "faint" }) });
+    items.push({ center: [sx * 30, 0, -1], svg: `<g style="${MATS.bank}">${S(KX.slabOf(bank, -3.4, 4.2, P, 6, 0.4), { tone: "lo" }) + L(KX.planOutline(KX.insetPlan(bank, 2), 0.8, P, 6), { tone: "faint" })}</g>` });
     const fill = { x: sx < 0 ? -41 : HALF, y: -6.8, w: 8.8, d: 13.6, r: 0.5 };
-    items.push({ center: [sx * 36.5, 0, 3], svg: S(KX.slabOf(fill, -3.4, 12.25, P, 5, 0.3), { tone: "lo" }) });
+    items.push({ center: [sx * 36.5, 0, 3], svg: `<g style="${MATS.bank}">${S(KX.slabOf(fill, -3.4, 12.25, P, 5, 0.3), { tone: "lo" })}</g>` });
     const road = { x: sx < 0 ? -41 : HALF, y: -DECK_W, w: 8.8, d: DECK_W * 2, r: 0.3 };
     const seams = [1, 2].map((i) => KX.segment([sx * (HALF + i * 2.9), -DECK_W, DECK_T], [sx * (HALF + i * 2.9), DECK_W, DECK_T], P)).join("");
-    items.push({ center: [sx * 36.5, 0, DECK_T], svg: S(KX.slabOf(road, DECK_B, DECK_T - DECK_B, P, 4, 0.15), { tone: "mid" }) + L(seams, { tone: "faint" }) });
+    items.push({ center: [sx * 36.5, 0, DECK_T], svg: `<g style="${MATS.road}">${S(KX.slabOf(road, DECK_B, DECK_T - DECK_B, P, 4, 0.15), { tone: "mid" }) + L(seams, { tone: "faint" })}</g>` });
   }
   return items;
 }
@@ -153,10 +179,10 @@ function abutments() {
     const endLines = sx > 0 ? [2, 4.6, 7].map((z) => KX.segment([HALF, -FOOT_W, z], [HALF, FOOT_W, z], P)).join("") : KX.segment([-19.3, FOOT_W, -3.2], [-19.3, FOOT_W, DECK_B], P);
     items.push({
       center: [sx * 25.7, 0, 4],
-      svg: `<g data-info="桥台|拱脚处桥宽 9.6 m，大于桥面宽 9.0 m（收分）" data-foc="${(sx * 25.7).toFixed(1)},0,4" data-focr="9">${S(KX.slabOf(body, -3.2, DECK_B + 3.7, P, 5), { tone: "mid" }) + L(courseLines, { tone: "faint" }) + L(endLines, { tone: "faint" })}</g>`,
+      svg: `<g data-info="桥台|拱脚处桥宽 9.6 m，大于桥面宽 9.0 m（收分）" data-foc="${(sx * 25.7).toFixed(1)},0,4" data-focr="9" style="${MATS.abut}">${S(KX.slabOf(body, -3.2, DECK_B + 3.7, P, 5), { tone: "mid" }) + L(courseLines, { tone: "faint" }) + L(endLines, { tone: "faint" })}</g>`,
     });
     const seat = { x: sx < 0 ? -20.6 : 17.6, y: -FOOT_W, w: 3.0, d: FOOT_W * 2, r: 0.15 };
-    items.push({ center: [sx * 19.1, 0, -0.25], svg: `<g data-info="拱座|主拱拱脚落脚处" data-foc="${(sx * 19.1).toFixed(1)},0,0" data-focr="4">${S(KX.slabOf(seat, -2.6, 3.1, P, 4, 0.1), { tone: "mid" })}</g>` });
+    items.push({ center: [sx * 19.1, 0, -0.25], svg: `<g data-info="拱座|主拱拱脚落脚处" data-foc="${(sx * 19.1).toFixed(1)},0,0" data-focr="4" style="${MATS.abut}">${S(KX.slabOf(seat, -2.6, 3.1, P, 4, 0.1), { tone: "mid" })}</g>` });
   }
   return items;
 }
@@ -167,7 +193,7 @@ function farBarrel() {
   out.push(fillPath(qp(crescentPts(-DECK_W))));
   out.push(`<path class="iso-shade" data-shade="1" d="${qp(crescentPts(-DECK_W))}"/>`);
   out.push(L(KX.pathOf(arcPoints(R_IN, -DECK_W).map(at)), { tone: "lo" }));
-  return `<g data-info="主拱圈（远侧）|圆弧坦拱：净跨 37.02 m，矢高 7.23 m，半径 27.31 m">${out.join("")}</g>`;
+  return `<g data-info="主拱圈（远侧）|圆弧坦拱：净跨 37.02 m，矢高 7.23 m，半径 27.31 m" style="${MATS.arch}">${out.join("")}</g>`;
 }
 
 // 主拱洞内壁：透过拱口可见的拱腹暗面，可见段随视线方向实时推导（仰角低时近拱脚处可见）
@@ -183,7 +209,7 @@ function barrelInterior() {
     out.push(`<path class="iso-shade" data-shade="0" d="${d}" style="opacity:.72"/>`);
   }
   const hit = qp([...arcPoints(R_IN, y1), [19.3, y1, WATER_Z], [-19.3, y1, WATER_Z]]);
-  return `<g data-info="主拱洞 · 桥下净空|单孔过水，河心不立桥墩；洪水期主拱全断面泄流" data-foc="0,0,2.6" data-focr="11"><path d="${hit}" style="fill:transparent"/>${out.join("")}</g>`;
+  return `<g data-info="主拱洞 · 桥下净空|单孔过水，河心不立桥墩；洪水期主拱全断面泄流" data-foc="0,0,2.6" data-focr="11" style="${MATS.tunnel}"><path d="${hit}" style="fill:transparent"/>${out.join("")}</g>`;
 }
 
 // 远侧拱上墙
@@ -193,13 +219,13 @@ function farWall() {
   for (const a of SMALL) {
     out.push(L(KX.pathOf(smallArchHole(a, -DECK_W).slice(0, 21).map(at)), { tone: "faint" }));
   }
-  return `<g data-info="拱上侧墙（远侧）|实肩改敞肩：省料、减重、利于泄洪">${out.join("")}</g>`;
+  return `<g data-info="拱上侧墙（远侧）|实肩改敞肩：省料、减重、利于泄洪" style="${MATS.wall}">${out.join("")}</g>`;
 }
 
 // 小拱券洞：洞底填料面与洞内暗面
 function tunnels() {
   return SMALL.map((a) =>
-    `<g data-info="${smallInfo(a)}">` +
+    `<g data-info="${smallInfo(a)}" style="${MATS.tunnel}">` +
     `<path class="iso-shade" data-shade="0" d="${qp(smallArchHole(a, -DECK_W + 0.05))}" style="opacity:.85"/>` +
     `</g>`,
   ).join("");
@@ -235,7 +261,7 @@ function barrelSlices() {
       KX.segment(arcPt(R_IN, Math.PI - PHI, y1), arcPt(R_OUT, Math.PI - PHI, y1), P),
     ];
     g.push(L(rim.join(""), { tone: "lo" }));
-    out.push(`<g class="iso-solid" data-ring data-ring-i="${i + 1}" data-build="ring" data-foc="0,${((y0 + y1) / 2).toFixed(2)},4.6" data-focr="8.5" data-info="主拱圈 · 第 ${i + 1} 道|28 道拱券纵向并列砌筑 · 净跨 37.02 m · 矢高 7.23 m">${g.join("")}</g>`);
+    out.push(`<g class="iso-solid" data-ring data-ring-i="${i + 1}" data-build="ring" data-foc="0,${((y0 + y1) / 2).toFixed(2)},4.6" data-focr="8.5" data-info="主拱圈 · 第 ${i + 1} 道|28 道拱券纵向并列砌筑 · 净跨 37.02 m · 矢高 7.23 m" style="${MATS.rings[i % MATS.rings.length]}">${g.join("")}</g>`);
   }
   return out.join("");
 }
@@ -257,7 +283,7 @@ function nearWallFace() {
       { tone: "lo" },
     ),
   );
-  return `<g class="iso-solid" data-foc="0,${y},6.8" data-focr="13" data-info="拱上侧墙|实肩改敞肩：节省土石、减轻自重、泄洪、减小主拱变形">${out.join("")}</g>`;
+  return `<g class="iso-solid" data-foc="0,${y},6.8" data-focr="13" data-info="拱上侧墙|实肩改敞肩：节省土石、减轻自重、泄洪、减小主拱变形" style="${MATS.wall}">${out.join("")}</g>`;
 }
 
 // 四个小拱的券脸环带、灰缝与洞口轮廓
@@ -279,7 +305,7 @@ function smallArchFaces() {
     }
     out.push(L(seams.join(""), { tone: "faint" }));
     out.push(L(KX.pathOf(smallArchHole(a, y).map(at), true), { tone: "mid" }));
-    return `<g data-info="${smallInfo(a)}" data-foc="${a.cx},${y},${(a.base + a.r * 0.55).toFixed(2)}" data-focr="3.4">${out.join("")}</g>`;
+    return `<g data-info="${smallInfo(a)}" data-foc="${a.cx},${y},${(a.base + a.r * 0.55).toFixed(2)}" data-focr="3.4" style="${MATS.arch}">${out.join("")}</g>`;
   }).join("");
 }
 
@@ -295,7 +321,7 @@ function fuStone() {
   }
   out.push(L(seams.join(""), { tone: "faint" }));
   out.push(L([KX.pathOf(arcPoints(R_OUT, y).map(at)), KX.pathOf(arcPoints(R_FU, y).map(at))].join(""), { tone: "lo" }));
-  return `<g class="iso-solid" data-foc="0,${(y - 0.6).toFixed(2)},9.0" data-focr="6.5" data-info="伏石（缴背）|主券背上伏石一层，联络 28 道单券成整体">${out.join("")}</g>`;
+  return `<g class="iso-solid" data-foc="0,${(y - 0.6).toFixed(2)},9.0" data-focr="6.5" data-info="伏石（缴背）|主券背上伏石一层，联络 28 道单券成整体" style="${MATS.fu}">${out.join("")}</g>`;
 }
 
 function deck() {
@@ -309,8 +335,8 @@ function deck() {
   const svg =
     S(KX.slabOf(deckPlan, DECK_B, DECK_T - DECK_B, P, 4, 0.1), { tone: "mid" }) +
     L(joints.join(""), { tone: "faint" }) +
-    KX.faceTextSvg(KX.topMatrix([22, 0], DECK_T + 0.02, P, "x"), "安 济 桥", { size: 2.1, tone: "faint", anchor: "middle" });
-  return `<g data-info="桥面|全长 64.4 m，宽 9.0 m，坦拱换来平缓桥面" data-foc="0,0,${DECK_T}" data-focr="13">${svg}</g>`;
+    KX.faceTextSvg(KX.topMatrix([22, 0], DECK_T + 0.02, P, "x"), "安 济 桥", { size: 2.1, tone: "mid", anchor: "middle" });
+  return `<g data-info="桥面|全长 64.4 m，宽 9.0 m，坦拱换来平缓桥面" data-foc="0,0,${DECK_T}" data-focr="13" style="${MATS.deck}">${svg}</g>`;
 }
 
 // 栏板与望柱：全长 64.4 m，22 间
@@ -376,7 +402,7 @@ function pulledRing() {
     KX.segment(aOut, [aOut[0], y0, aOut[2]], P),
     KX.segment(arcPt(R_OUT, Math.PI - PHI, y1), arcPt(R_OUT, Math.PI - PHI, y0), P),
   ];
-  return `<g class="iso-solid" data-part="ring" data-ring data-ring-i="28" data-build="ring" data-lit="" data-foc="0,10.8,3.6" data-focr="11" data-focaz="90" data-info="第 28 道拱券|券宽 9.0 m ÷ 28 ≈ 0.32 m · 券背腰铁栓蹙 · 点击抽出 / 收回">${out.join("")}${L(seams.join(""), { tone: "lo" })}${L(clamps.join(""), { tone: "hi" })}${L(outline.join(""), { tone: "hi" })}</g>`;
+  return `<g class="iso-solid" data-part="ring" data-ring data-ring-i="28" data-build="ring" data-lit="" data-foc="0,10.8,3.6" data-focr="11" data-focaz="90" data-info="第 28 道拱券|券宽 9.0 m ÷ 28 ≈ 0.32 m · 券背腰铁栓蹙 · 点击抽出 / 收回" style="${MATS.arch}">${out.join("")}${L(seams.join(""), { tone: "lo" })}${L(clamps.join(""), { tone: "hi" })}${L(outline.join(""), { tone: "hi" })}</g>`;
 }
 
 // 覆盖层辅助：屏幕空间箭头与标注文字
@@ -420,8 +446,8 @@ function forceOverlay() {
 // 泄洪演示：水位面与分洪流线由页面按水位实时生成（拖动滑杆），小拱净跨 3.81 / 2.85 m
 function floodSlots() {
   return {
-    far: `<g data-mode="flood" style="display:none" data-water-far></g>`,
-    near: `<g data-mode="flood" style="display:none" data-water-near></g>`,
+    far: `<g data-mode="flood" style="display:none;${MATS.flood}" data-water-far></g>`,
+    near: `<g data-mode="flood" style="display:none;${MATS.flood}" data-water-near></g>`,
   };
 }
 
@@ -473,7 +499,7 @@ function cartGroup() {
   });
   const hub = at([0, 0, cz]);
   const out = [];
-  out.push(S(KX.slabOf({ x: -0.95, y: -0.5, w: 1.7, d: 1.0, r: 0.06 }, DECK_T + 1.15, 0.55, P, 3), { tone: "mid" }));
+  out.push(`<g style="${MATS.cart}">${S(KX.slabOf({ x: -0.95, y: -0.5, w: 1.7, d: 1.0, r: 0.06 }, DECK_T + 1.15, 0.55, P, 3), { tone: "mid" })}</g>`);
   out.push(L(KX.segment([-0.55, 0, DECK_T + 1.15], [-0.55, 0, DECK_T], P) + KX.segment([0.55, 0, DECK_T + 1.15], [0.55, 0, DECK_T], P), { tone: "faint" }));
   out.push(L(KX.segment([-0.5, 0, DECK_T + 1.2], [0, 0, cz], P), { tone: "mid" }));
   out.push(L(KX.pathOf(rim.map(at), true), { tone: "mid" }));
@@ -501,7 +527,7 @@ function sceneBody() {
     `<g data-layer="wall" data-build="wall">${nearWallFace()}${smallArchFaces()}</g>`,
     `<g data-layer="deck" data-build="deck">${deck()}</g>`,
     cartGroup(),
-    `<g data-layer="rail" data-build="rail"><g data-info="栏板与望柱|全长 64.4 m 共分 22 间" data-foc="0,0,9.9" data-focr="14">${parapet()}</g></g>`,
+    `<g data-layer="rail" data-build="rail"><g data-info="栏板与望柱|全长 64.4 m 共分 22 间" data-foc="0,0,9.9" data-focr="14" style="${MATS.rail}">${parapet()}</g></g>`,
     `<g data-part="ring-wrap">${pulledRing()}</g>`,
     forceOverlay(),
     measureOverlay(),
